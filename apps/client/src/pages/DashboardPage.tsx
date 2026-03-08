@@ -1,41 +1,40 @@
-import { useQuery } from '@tanstack/react-query';
-import type { DashboardConfig, ApiResponse } from '@command-center/types';
-import DashboardEngine from '@/engine/DashboardEngine';
-import { defaultDashboardConfig } from '@/config/dashboard.config';
+import { DashboardHeader } from '@/widgets/ai-lifecycle/DashboardHeader';
+import { KpiCardRow } from '@/widgets/ai-lifecycle/KpiCardRow';
+import { QuarterlyGrowthCard } from '@/widgets/ai-lifecycle/QuarterlyGrowthCard';
+import { ApprovalTimeCard } from '@/widgets/ai-lifecycle/ApprovalTimeCard';
+import { LifecycleFunnelCard } from '@/widgets/ai-lifecycle/LifecycleFunnelCard';
+import { TimelineOverviewCard } from '@/widgets/ai-lifecycle/TimelineOverviewCard';
+import { BottlenecksCard } from '@/widgets/ai-lifecycle/BottlenecksCard';
+import { OnboardingTrackerCard } from '@/widgets/ai-lifecycle/OnboardingTrackerCard';
 
 export default function DashboardPage() {
-    const { data: config, isLoading, error } = useQuery<DashboardConfig>({
-        queryKey: ['dashboard-config'],
-        queryFn: async () => {
-            const res = await fetch('/api/dashboard/config');
-            if (!res.ok) throw new Error('Failed to load dashboard config');
-            const json: ApiResponse<DashboardConfig> = await res.json();
-            return json.data;
-        },
-        staleTime: Infinity, // Config rarely changes
-    });
+    return (
+        <div className="w-full max-w-[1400px] mx-auto pb-10">
+            <DashboardHeader />
+            <KpiCardRow />
 
-    // Fallback to static config if API is unreachable
-    const dashboardConfig = config ?? (error ? defaultDashboardConfig : undefined);
+            {/* Middle and Timeline Section */}
+            <div className="grid grid-cols-3 gap-6 mb-6">
+                {/* Left 2 columns containing Stats and Timeline */}
+                <div className="col-span-2 flex flex-col gap-6">
+                    <div className="grid grid-cols-2 gap-6">
+                        <QuarterlyGrowthCard />
+                        <ApprovalTimeCard />
+                    </div>
+                    <TimelineOverviewCard />
+                </div>
 
-    if (isLoading && !dashboardConfig) {
-        return (
-            <div className="flex h-[60vh] items-center justify-center text-text-muted">
-                <div className="text-center">
-                    <div className="skeleton mx-auto mb-4 h-[24px] w-[200px]" />
-                    <div className="skeleton mx-auto h-[14px] w-[300px]" />
+                {/* Right 1 column containing the tall Funnel */}
+                <div className="col-span-1">
+                    <LifecycleFunnelCard />
                 </div>
             </div>
-        );
-    }
 
-    if (!dashboardConfig) {
-        return (
-            <div className="flex h-[60vh] items-center justify-center text-[0.9rem] text-accent-rose">
-                Failed to load dashboard configuration.
+            {/* Bottom Sections */}
+            <div className="grid grid-cols-2 gap-6">
+                <BottlenecksCard />
+                <OnboardingTrackerCard />
             </div>
-        );
-    }
-
-    return <DashboardEngine config={dashboardConfig} />;
+        </div>
+    );
 }
