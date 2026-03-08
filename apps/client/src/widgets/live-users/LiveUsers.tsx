@@ -4,9 +4,9 @@ import type { LiveUsersData } from '@command-center/types';
 import { Globe, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
 const trendConfig = {
-    up: { icon: TrendingUp, color: 'var(--color-accent-emerald)', label: 'Trending up' },
-    down: { icon: TrendingDown, color: 'var(--color-accent-rose)', label: 'Trending down' },
-    stable: { icon: Minus, color: 'var(--color-text-muted)', label: 'Stable' },
+    up: { icon: TrendingUp, colorClass: 'text-accent-emerald', label: 'Trending up' },
+    down: { icon: TrendingDown, colorClass: 'text-accent-rose', label: 'Trending down' },
+    stable: { icon: Minus, colorClass: 'text-text-muted', label: 'Stable' },
 };
 
 export default function LiveUsers({ dataSource }: WidgetProps) {
@@ -33,10 +33,7 @@ export default function LiveUsers({ dataSource }: WidgetProps) {
                 <div className="bg-gradient-to-br from-accent-emerald to-accent-sky bg-clip-text text-[3.5rem] font-black leading-none tracking-tight text-transparent">
                     {data.count.toLocaleString()}
                 </div>
-                <div
-                    className="mt-2 flex items-center justify-center gap-1 text-[0.75rem] font-medium"
-                    style={{ color: trend.color }}
-                >
+                <div className={`mt-2 flex items-center justify-center gap-1 text-[0.75rem] font-medium ${trend.colorClass}`}>
                     <TrendIcon size={14} />
                     {trend.label}
                 </div>
