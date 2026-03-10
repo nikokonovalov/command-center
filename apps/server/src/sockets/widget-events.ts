@@ -1,17 +1,16 @@
 import type { Server } from 'socket.io';
-import { generateLiveUsersData, generateActivityFeedData } from '../mocks/generators.js';
+import { generateProductionGrowthData, generateMonthlyCostData } from '../mocks/generators.js';
 
 export function registerWidgetEvents(io: Server) {
-    // ── Live Users: emit to all subscribers every 2 seconds ──
+    // ── Production Growth (Lifecycle): emit every 3 seconds ──
     setInterval(() => {
-        io.to('live-users-update').emit('live-users-update', generateLiveUsersData());
-    }, 2000);
+        io.to('production-growth-update').emit('production-growth-update', generateProductionGrowthData());
+    }, 3000);
 
-    // ── Activity Feed: emit a new activity item every 5 seconds ──
+    // ── Monthly AI Cost (Risk): emit every 3 seconds ──
     setInterval(() => {
-        const activities = generateActivityFeedData();
-        io.to('activity-update').emit('activity-update', activities);
-    }, 5000);
+        io.to('monthly-cost-update').emit('monthly-cost-update', generateMonthlyCostData());
+    }, 3000);
 
     // ── Handle client connections ──
     io.on('connection', (socket) => {

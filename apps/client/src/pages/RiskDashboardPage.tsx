@@ -1,22 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
 import type { DashboardConfig, ApiResponse } from '@command-center/types';
 import DashboardEngine from '@/engine/DashboardEngine';
-import { defaultDashboardConfig } from '@/config/dashboard.config';
+import { defaultRiskDashboardConfig } from '@/config/dashboard.config';
 
-export default function DashboardPage() {
+export default function RiskDashboardPage() {
     const { data: config, isLoading, error } = useQuery<DashboardConfig>({
-        queryKey: ['dashboard-config'],
+        queryKey: ['dashboard-config-risk'],
         queryFn: async () => {
-            const res = await fetch('/api/dashboard/config');
-            if (!res.ok) throw new Error('Failed to load dashboard config');
+            const res = await fetch('/api/dashboard/config?tab=risk');
+            if (!res.ok) throw new Error('Failed to load risk dashboard config');
             const json: ApiResponse<DashboardConfig> = await res.json();
             return json.data;
         },
-        staleTime: Infinity, // Config rarely changes
+        staleTime: Infinity,
     });
 
-    // Fallback to static config if API is unreachable
-    const dashboardConfig = config ?? (error ? defaultDashboardConfig : undefined);
+    const dashboardConfig = config ?? (error ? defaultRiskDashboardConfig : undefined);
 
     if (isLoading && !dashboardConfig) {
         return (

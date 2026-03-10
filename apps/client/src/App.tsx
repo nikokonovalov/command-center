@@ -3,6 +3,7 @@ import { QueryProvider } from '@/providers/QueryProvider';
 import { SocketProvider } from '@/providers/SocketProvider';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import DashboardPage from '@/pages/DashboardPage';
+import RiskDashboardPage from '@/pages/RiskDashboardPage';
 
 export default function App() {
     return (
@@ -13,6 +14,7 @@ export default function App() {
                         <Route element={<DashboardLayout />}>
                             <Route path="/" element={<Navigate to="/dashboard" replace />} />
                             <Route path="/dashboard" element={<DashboardPage />} />
+                            <Route path="/risk" element={<RiskDashboardPage />} />
                         </Route>
                     </Routes>
                 </BrowserRouter>
