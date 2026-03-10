@@ -22,13 +22,7 @@ export default function MonthlyCost({ dataSource }: WidgetProps) {
     const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
     return (
-        <div className="flex h-full flex-col justify-between">
-            <div>
-                <div className="flex items-center gap-1.5 text-gray-700">
-                    <CircleDollarSign size={16} />
-                    <span className="text-[14px] font-semibold">Monthly AI Cost</span>
-                </div>            </div>
-
+        <div className="flex h-full flex-col justify-end">
             <div className="flex items-end justify-between">
                 <div className="flex items-end gap-3 z-10 w-full">
                     <span className="text-[2.5rem] font-light leading-none text-gray-800 tabular-nums tracking-tight">

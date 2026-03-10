@@ -16,13 +16,7 @@ export default function ResponsibleAIIndex({ dataSource }: WidgetProps) {
     }
 
     return (
-        <div className="flex h-full flex-col justify-between">
-            <div>
-                <div className="flex items-center gap-1.5 text-gray-700">
-                    <ShieldCheck size={16} />
-                    <span className="text-[14px] font-semibold">Responsible AI Index</span>
-                </div>            </div>
-
+        <div className="flex h-full flex-col justify-end">
             <div className="flex items-end justify-between">
                 <div>
                     <div className="flex items-end gap-3">
