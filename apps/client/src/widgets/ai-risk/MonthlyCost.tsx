@@ -22,7 +22,7 @@ export default function MonthlyCost({ dataSource }: WidgetProps) {
     const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
     return (
-        <div className="flex h-full flex-col justify-end">
+        <div className="relative flex h-full flex-col justify-end">
             <div className="flex items-end justify-between">
                 <div className="flex items-end gap-3 z-10 w-full">
                     <span className="text-[2.5rem] font-light leading-none text-gray-800 tabular-nums tracking-tight">

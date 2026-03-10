@@ -76,7 +76,7 @@ const lifecycleDashboardConfig: DashboardConfig = {
             type: 'bottlenecks',
             title: 'Bottlenecks & Escalations',
             description: 'Active escalations and SLA breaches requiring immediate attention.',
-            layout: { colSpan: 5, rowSpan: 4 },
+            layout: { colSpan: 7, rowSpan: 4 },
             dataSource: { type: 'rest', endpoint: '/api/widgets/bottlenecks/data', staleTime: 60000 },
         },
         {
@@ -84,7 +84,7 @@ const lifecycleDashboardConfig: DashboardConfig = {
             type: 'onboarding-tracker',
             title: 'AI Use Cases Onboarding Tracker',
             description: 'Current backlog of AI use cases pending approval across governance bodies.',
-            layout: { colSpan: 5, rowSpan: 4 },
+            layout: { colSpan: 2, rowSpan: 4 },
             dataSource: { type: 'rest', endpoint: '/api/widgets/onboarding-tracker/data', staleTime: 60000 },
         },
         {
@@ -96,20 +96,20 @@ const lifecycleDashboardConfig: DashboardConfig = {
             dataSource: { type: 'rest', endpoint: '/api/widgets/use-cases-by-bu/data', staleTime: 60000 },
         },
         {
-            id: 'approval-status',
-            type: 'approval-status',
-            title: 'Approval Status',
-            description: 'AI governance approval across review stages.',
-            layout: { colSpan: 2, rowSpan: 4 },
-            dataSource: { type: 'rest', endpoint: '/api/widgets/approval-status/data', staleTime: 60000 },
-        },
-        {
             id: 'tech-distribution',
             type: 'tech-distribution',
             title: 'AI Technology Distribution',
             description: 'Distribution of AI technologies deployed in production vs. pilot stages.',
-            layout: { colSpan: 3, rowSpan: 4 },
+            layout: { colSpan: 3, rowSpan: 3 },
             dataSource: { type: 'rest', endpoint: '/api/widgets/tech-distribution/data', staleTime: 60000 },
+        },
+        {
+            id: 'approval-status',
+            type: 'approval-status',
+            title: 'Approval Status',
+            description: 'AI governance approval across review stages.',
+            layout: { colSpan: 2, rowSpan: 3 },
+            dataSource: { type: 'rest', endpoint: '/api/widgets/approval-status/data', staleTime: 60000 },
         },
     ],
 };
@@ -155,7 +155,7 @@ const riskDashboardConfig: DashboardConfig = {
             type: 'model-performance',
             title: 'Model Performance Metrics',
             description: 'Operational performance trends: Accuracy & Latency gains.',
-            layout: { colSpan: 4, rowSpan: 5 },
+            layout: { colSpan: 4, rowSpan: 6 },
             dataSource: { type: 'rest', endpoint: '/api/widgets/model-performance/data', staleTime: 60000 },
         },
         {
@@ -163,7 +163,7 @@ const riskDashboardConfig: DashboardConfig = {
             type: 'model-quality-risk',
             title: 'Model Quality & Risk',
             description: 'Hallucination rates and factual accuracy degradation metrics for active agents.',
-            layout: { colSpan: 4, rowSpan: 5 },
+            layout: { colSpan: 4, rowSpan: 6 },
             dataSource: { type: 'rest', endpoint: '/api/widgets/model-quality-risk/data', staleTime: 60000 },
         },
         {
@@ -171,7 +171,7 @@ const riskDashboardConfig: DashboardConfig = {
             type: 'ai-index-trend',
             title: 'Responsible AI Index Trend',
             description: 'Historical progression of the enterprise Responsible AI score.',
-            layout: { colSpan: 2, rowSpan: 3 },
+            layout: { colSpan: 2, rowSpan: 4 },
             dataSource: { type: 'rest', endpoint: '/api/widgets/ai-index-trend/data', staleTime: 60000 },
         },
         {

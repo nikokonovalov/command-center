@@ -29,9 +29,9 @@ export default function ModelQualityRisk({ dataSource }: WidgetProps) {
                 </div>
             </div>
 
-            <div className="flex-1 flex items-end justify-between px-2 pt-4 relative">
+            <div className="flex-1 flex items-stretch justify-between px-2 pt-8 pb-1 relative min-h-0">
                 {/* Y-Axis lines (background) */}
-                <div className="absolute inset-0 flex flex-col justify-between -z-10 text-[9px] text-gray-400">
+                <div className="absolute inset-0 flex flex-col justify-between -z-10 text-[9px] text-gray-400 pb-6 pt-8">
                     {[7, 6, 5, 4, 3, 2, 1, 0].map(v => (
                         <div key={v} className="flex items-center gap-2">
                             <span className="w-2">{v}</span>
@@ -42,16 +42,18 @@ export default function ModelQualityRisk({ dataSource }: WidgetProps) {
 
                 {/* Bars */}
                 {hallucinationRates.map((rate, i) => (
-                    <div key={i} className="flex flex-col items-center gap-2 z-10 w-[30px] group">
-                        <div
-                            className="w-full bg-[#9333ea] rounded-t-sm transition-all duration-500 hover:bg-[#a855f7]"
-                            style={{ height: `${(rate / maxRate) * 100}%` }}
-                        >
-                            <div className="opacity-0 group-hover:opacity-100 absolute -top-6 bg-gray-800 text-white text-[10px] px-2 py-1 rounded transition-opacity pointer-events-none transform -translate-x-[calc(50%-15px)]">
-                                {rate}%
+                    <div key={i} className="flex flex-col items-center justify-end gap-1 z-10 w-[30px] h-full group">
+                        <div className="flex-1 w-full flex items-end justify-center relative">
+                            <div
+                                className="w-full bg-[#9333ea] rounded-t-sm transition-all duration-500 hover:bg-[#a855f7]"
+                                style={{ height: `${(rate / maxRate) * 100}%` }}
+                            >
+                                <div className="opacity-0 group-hover:opacity-100 absolute -top-7 bg-gray-800 text-white text-[10px] px-2 py-1 rounded transition-opacity pointer-events-none left-1/2 -translate-x-1/2">
+                                    {rate}%
+                                </div>
                             </div>
                         </div>
-                        <span className="text-[10px] text-gray-500 font-medium">{labels[i]}</span>
+                        <span className="shrink-0 text-[10px] text-gray-500 font-medium h-4">{labels[i]}</span>
                     </div>
                 ))}
             </div>
