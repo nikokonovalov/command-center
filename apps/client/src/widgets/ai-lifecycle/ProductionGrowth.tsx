@@ -34,9 +34,7 @@ export default function ProductionGrowth({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col justify-between">
-            <div>
-                <p className="text-xs text-gray-500">Quarterly increase in AI production deployments.</p>
-            </div>
+            <div>            </div>
             <div className="flex items-end justify-between">
                 <div className="flex items-center gap-3">
                     <span className="text-4xl font-light text-gray-800">+{data.growthPercent}%</span>

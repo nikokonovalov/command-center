@@ -12,7 +12,7 @@ export default function DashboardPage() {
             const json: ApiResponse<DashboardConfig> = await res.json();
             return json.data;
         },
-        staleTime: Infinity, // Config rarely changes
+        staleTime: import.meta.env.DEV ? 0 : 24 * 60 * 60 * 1000, // 24 hours in prod
     });
 
     // Fallback to static config if API is unreachable

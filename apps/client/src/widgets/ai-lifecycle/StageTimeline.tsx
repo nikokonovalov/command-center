@@ -31,40 +31,38 @@ export default function StageTimeline({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <p className="text-xs text-gray-500 mb-3">
-                Average time spent in each lifecycle stage compared to expected approval timelines.
-            </p>
+            <div className="flex-1 flex flex-col justify-center">
+                <div className="grid grid-cols-3 gap-4">
+                    {data.stages.map((stage) => {
+                        const Icon = icons[stage.icon] ?? FlaskConical;
+                        const style = statusStyles[stage.status] ?? statusStyles['On Track'];
 
-            <div className="grid grid-cols-3 gap-4 flex-1">
-                {data.stages.map((stage) => {
-                    const Icon = icons[stage.icon] ?? FlaskConical;
-                    const style = statusStyles[stage.status] ?? statusStyles['On Track'];
-
-                    return (
-                        <div key={stage.label} className={`rounded-xl border ${style.border} ${style.bg} p-4 flex flex-col justify-between`}>
-                            <div className="flex items-center gap-2 mb-2">
-                                <Icon size={16} className={style.text} />
-                                <span className="text-sm font-semibold text-gray-800">{stage.label}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                                <div>
-                                    <div className="text-gray-400 mb-0.5">Average Duration</div>
-                                    <div className="font-semibold text-gray-800">{stage.avgDuration} days</div>
+                        return (
+                            <div key={stage.label} className={`rounded-xl border ${style.border} ${style.bg} p-4 flex flex-col gap-3`}>
+                                <div className="flex items-center gap-2">
+                                    <Icon size={16} className={style.text} />
+                                    <span className="text-sm font-semibold text-gray-800">{stage.label}</span>
                                 </div>
-                                <div className="text-right">
-                                    <div className="text-gray-400 mb-0.5">Expected SLA</div>
-                                    <div className="font-semibold text-gray-800">{stage.expectedSla} days</div>
+                                <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                                    <div>
+                                        <div className="text-gray-400 mb-0.5">Average Duration</div>
+                                        <div className="font-semibold text-gray-800">{stage.avgDuration} days</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-gray-400 mb-0.5">Expected SLA</div>
+                                        <div className="font-semibold text-gray-800">{stage.expectedSla} days</div>
+                                    </div>
+                                </div>
+                                <div className={`inline-flex self-start items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${style.text} ${style.bg} border ${style.border}`}>
+                                    {stage.status === 'SLA Breached' && '⚠ '}
+                                    {stage.status === 'At SLA Limit' && '⏱ '}
+                                    {stage.status === 'On Track' && '✓ '}
+                                    {stage.status}
                                 </div>
                             </div>
-                            <div className={`inline-flex self-start items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${style.text} ${style.bg} border ${style.border}`}>
-                                {stage.status === 'SLA Breached' && '⚠ '}
-                                {stage.status === 'At SLA Limit' && '⏱ '}
-                                {stage.status === 'On Track' && '✓ '}
-                                {stage.status}
-                            </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
 
             <div className="mt-3 flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">

@@ -11,6 +11,7 @@ export interface WidgetConfig {
     id: string;
     type: string;
     title: string;
+    description?: string;
     layout: WidgetLayout;
     dataSource: WidgetDataSource;
 }

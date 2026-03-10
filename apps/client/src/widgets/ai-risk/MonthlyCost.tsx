@@ -27,9 +27,7 @@ export default function MonthlyCost({ dataSource }: WidgetProps) {
                 <div className="flex items-center gap-1.5 text-gray-700">
                     <CircleDollarSign size={16} />
                     <span className="text-[14px] font-semibold">Monthly AI Cost</span>
-                </div>
-                <p className="text-[11px] text-gray-500 mt-0.5">Total enterprise AI infrastructure and model operational cost</p>
-            </div>
+                </div>            </div>
 
             <div className="flex items-end justify-between">
                 <div className="flex items-end gap-3 z-10 w-full">

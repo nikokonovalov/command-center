@@ -17,10 +17,6 @@ export default function Bottlenecks({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <p className="text-xs text-gray-500 mb-4">
-                AI use cases flagged for delays, governance, or approval risks.
-            </p>
-
             <div className="flex flex-col gap-3 flex-1">
                 {data.items.map((item) => (
                     <div

@@ -50,8 +50,6 @@ export default function ApprovalStatus({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <p className="text-xs text-gray-500 mb-2">AI governance approval across review stages.</p>
-
             <div className="flex flex-1 items-center gap-4">
                 <div className="flex flex-col gap-1.5 min-w-[100px]">
                     {segments.map(s => (

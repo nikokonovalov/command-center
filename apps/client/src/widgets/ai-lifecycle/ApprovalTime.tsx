@@ -26,9 +26,7 @@ export default function ApprovalTime({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col justify-between">
-            <div>
-                <p className="text-xs text-gray-500">Average AI approval cycle time.</p>
-            </div>
+            <div>            </div>
             <div className="flex items-end justify-between">
                 <div>
                     <div className="flex items-center gap-2 mb-2">

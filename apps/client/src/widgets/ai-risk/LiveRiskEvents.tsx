@@ -16,9 +16,6 @@ export default function LiveRiskEvents({ dataSource }: WidgetProps) {
     if (isLoading || !data) {
         return (
             <div className="flex h-full flex-col">
-                <p className="text-xs text-gray-500 mb-3">
-                    Real-time view of AI alerts, model drift, guardrail triggers, and policy violations across the enterprise.
-                </p>
                 <div className="grid grid-cols-4 gap-4 flex-1">
                     {[1, 2, 3, 4].map(i => <div key={i} className="skeleton rounded-xl" />)}
                 </div>
@@ -28,9 +25,6 @@ export default function LiveRiskEvents({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <p className="text-xs text-gray-500 mb-3">
-                Real-time view of AI alerts, model drift, guardrail triggers, and policy violations across the enterprise.
-            </p>
             <div className="grid grid-cols-4 gap-4 flex-1">
                 {data.events.map((event) => {
                     const Icon = icons[event.icon] ?? AlertTriangle;

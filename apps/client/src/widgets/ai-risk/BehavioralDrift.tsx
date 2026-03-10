@@ -27,13 +27,7 @@ export default function BehavioralDrift({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <div className="flex items-center justify-between mb-4">
-                <p className="text-xs text-gray-500">
-                    Real-time drift deviation across production agents.
-                </p>
-            </div>
-
-            <div className="flex-1 flex flex-col justify-center gap-4 overflow-y-auto">
+            <div className="flex-1 flex flex-col justify-center gap-4 overflow-y-auto pr-2 min-h-0">
                 {agents.map((agent) => (
                     <div key={agent.name} className="flex flex-col gap-1.5">
                         <div className="flex items-center justify-between text-xs">
@@ -54,7 +48,7 @@ export default function BehavioralDrift({ dataSource }: WidgetProps) {
             </div>
 
             {/* Legend */}
-            <div className="mt-4 flex items-center justify-center gap-5 text-[10px] text-gray-500 border-t border-gray-100 pt-3">
+            <div className="mt-4 flex items-center justify-center gap-5 text-[10px] text-gray-500 border-t border-gray-100 pt-4">
                 <div className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-[#10b981]" /> Stable
                 </div>

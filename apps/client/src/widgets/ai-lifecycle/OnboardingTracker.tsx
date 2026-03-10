@@ -56,10 +56,6 @@ export default function OnboardingTracker({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <p className="text-xs text-gray-500 mb-4">
-                AI use cases progressing through the required onboarding and approval workflow.
-            </p>
-
             <div className="flex flex-1 items-center gap-6">
                 {/* Legend */}
                 <div className="flex flex-col gap-2 min-w-[140px]">

@@ -25,10 +25,6 @@ export default function RiskScoreBreakdown({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <p className="text-xs text-gray-500 mb-4">
-                Component breakdown of risk scores for highest-risk agents.
-            </p>
-
             <div className="flex-1 flex flex-col justify-center gap-4 overflow-y-auto">
                 {agents.map((agent) => {
                     const totalScore = agent.criticalAlerts + agent.drift + agent.policyViolations + agent.guardrailTriggers;

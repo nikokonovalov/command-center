@@ -27,7 +27,7 @@ export default function DashboardEngine({ config }: DashboardEngineProps) {
     }
 
     return (
-        <div className="grid grid-cols-10 gap-5 auto-rows-[160px]">
+        <div className="grid grid-cols-10 gap-5 auto-rows-[70px] grid-flow-row-dense">
             {config.widgets.map((widget) => (
                 <div
                     key={widget.id}

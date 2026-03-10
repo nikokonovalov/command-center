@@ -21,10 +21,6 @@ export default function LifecycleFunnel({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <p className="text-xs text-gray-500 mb-4">
-                Visualizes movement from Total AI Use Cases to Production and stage conversion rates.
-            </p>
-
             <div className="flex flex-1 items-center gap-6">
                 {/* Funnel SVG */}
                 <div className="flex-1 flex items-center justify-center">

@@ -63,9 +63,7 @@ export default function ModelPerformance({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <div className="flex items-center justify-between mb-2">
-                <p className="text-xs text-gray-500">Operational performance trends: Accuracy & Latency gains.</p>
-                <div className="bg-gray-100 px-2 py-1 rounded text-[10px] text-gray-500 flex items-center gap-1 cursor-pointer">
+            <div className="flex items-center justify-between mb-2">                <div className="bg-gray-100 px-2 py-1 rounded text-[10px] text-gray-500 flex items-center gap-1 cursor-pointer">
                     All Agents <span className="text-[8px]">▼</span>
                 </div>
             </div>

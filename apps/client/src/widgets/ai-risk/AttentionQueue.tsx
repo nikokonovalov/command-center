@@ -22,11 +22,7 @@ export default function AttentionQueue({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <p className="text-xs text-gray-500 mb-4">
-                Prioritized queue of AI incidents, drift alerts, and policy violations requiring immediate investigation.
-            </p>
-
-            <div className="flex flex-col gap-3 overflow-y-auto pr-2 flex-1">
+            <div className="flex-1 flex flex-col gap-3 overflow-y-auto pr-2 min-h-0">
                 {data.items.map((item, idx: number) => {
                     const sevStyle = severityStyles[item.severity] || severityStyles.medium;
 

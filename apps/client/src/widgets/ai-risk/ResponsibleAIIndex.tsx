@@ -21,9 +21,7 @@ export default function ResponsibleAIIndex({ dataSource }: WidgetProps) {
                 <div className="flex items-center gap-1.5 text-gray-700">
                     <ShieldCheck size={16} />
                     <span className="text-[14px] font-semibold">Responsible AI Index</span>
-                </div>
-                <p className="text-[11px] text-gray-500 mt-0.5">Enterprise-wide AI health and risk score.</p>
-            </div>
+                </div>            </div>
 
             <div className="flex items-end justify-between">
                 <div>

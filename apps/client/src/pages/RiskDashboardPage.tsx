@@ -12,7 +12,7 @@ export default function RiskDashboardPage() {
             const json: ApiResponse<DashboardConfig> = await res.json();
             return json.data;
         },
-        staleTime: Infinity,
+        staleTime: import.meta.env.DEV ? 0 : 24 * 60 * 60 * 1000, // 24 hours in prod
     });
 
     const dashboardConfig = config ?? (error ? defaultRiskDashboardConfig : undefined);

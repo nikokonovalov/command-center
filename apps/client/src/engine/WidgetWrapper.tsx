@@ -62,19 +62,29 @@ export default function WidgetWrapper({ config }: WidgetWrapperProps) {
 
     return (
         <div className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
-            <div className="relative flex flex-1 flex-col p-5">
-                {(config.title || isLive) && (
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-[16px] font-normal text-gray-700">{config.title}</h3>
-                        {isLive && (
-                            <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-green-600">
-                                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
-                                LIVE
+            <div className="flex h-full flex-col p-5">
+                {(config.title || isLive || config.description) && (
+                    <div className="shrink-0 mb-4">
+                        {(config.title || isLive) && (
+                            <div className="flex items-center justify-between mb-1">
+                                <h3 className="text-[16px] font-normal text-gray-700">{config.title}</h3>
+                                {isLive && (
+                                    <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-green-600">
+                                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+                                        LIVE
+                                    </div>
+                                )}
                             </div>
+                        )}
+                        {config.description && (
+                            <p className="text-xs text-gray-500">
+                                {config.description}
+                            </p>
                         )}
                     </div>
                 )}
-                <div className="flex-1 overflow-hidden">
+
+                <div className="flex-1 flex flex-col min-h-0">
                     {WidgetComponent ? (
                         <WidgetErrorBoundary>
                             <Suspense fallback={<WidgetSkeleton />}>

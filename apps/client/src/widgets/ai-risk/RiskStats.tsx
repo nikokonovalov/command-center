@@ -26,28 +26,28 @@ export default function RiskStats({ dataSource }: WidgetProps) {
     const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
     return (
-        <div className="flex h-full flex-col justify-between bg-[#00112c] text-white p-2 rounded-xl">
+        <div className="flex h-full flex-col justify-between bg-[#00112c] text-white p-6 rounded-2xl">
             <div className="flex items-start justify-between">
-                <Icon size={20} className="text-gray-400" />
-                <div className={`flex items-center gap-1 text-[11px] font-medium ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
-                    <TrendIcon size={12} />
+                <Icon size={32} strokeWidth={1.5} className="text-gray-300" />
+                <div className={`flex items-center gap-1.5 text-xs font-medium tracking-wide ${isPositive ? 'text-[#10b981]' : 'text-red-400'}`}>
+                    <TrendIcon size={14} />
                     {isPositive ? '+' : ''}{data.change}% {data.changeLabel}
                 </div>
             </div>
 
-            <div>
-                <div className="text-[2.5rem] font-bold leading-none tracking-tight mb-1">
+            <div className="mt-auto">
+                <div className="text-[4rem] font-bold leading-none tracking-tight mb-2">
                     {data.value}
                 </div>
-                <div className="text-[13px] font-medium text-gray-300">
+                <div className="text-[17px] font-medium text-white/95 tracking-wide">
                     {data.label}
                 </div>
                 {/* Specific subtitles based on the mock */}
                 {data.icon === 'cpu' && (
-                    <div className="text-[10px] text-gray-500 mt-1">Total Use Cases Deployed and Running.</div>
+                    <div className="text-[11px] text-gray-400 mt-1.5">Total Use Cases Deployed and Running.</div>
                 )}
                 {data.icon === 'bot' && (
-                    <div className="text-[10px] text-gray-500 mt-1">Total Active Agent Workflows</div>
+                    <div className="text-[11px] text-gray-400 mt-1.5">Total Active Agent Workflows</div>
                 )}
             </div>
         </div>

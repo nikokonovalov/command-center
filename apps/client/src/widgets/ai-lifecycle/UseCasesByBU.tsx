@@ -20,10 +20,6 @@ export default function UseCasesByBU({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <p className="text-xs text-gray-500 mb-3">
-                Distribution of AI use cases across enterprise units with drill-down view into business functions.
-            </p>
-
             <div className="flex-1 flex flex-col justify-center gap-[6px] overflow-y-auto">
                 {data.units.map((unit) => (
                     <div key={unit.name} className="flex items-center gap-3">

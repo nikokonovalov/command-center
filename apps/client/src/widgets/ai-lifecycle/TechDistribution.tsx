@@ -16,10 +16,6 @@ export default function TechDistribution({ dataSource }: WidgetProps) {
 
     return (
         <div className="flex h-full flex-col">
-            <p className="text-xs text-gray-500 mb-3">
-                Breakdown of AI use cases by underlying technology type across the enterprise.
-            </p>
-
             <div className="flex flex-col flex-1 justify-center gap-3">
                 {/* Stacked bar */}
                 <div className="flex h-[28px] w-full overflow-hidden rounded-lg">
