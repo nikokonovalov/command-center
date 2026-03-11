@@ -13,6 +13,11 @@ if [ ! -f "$EXECUTABLE" ]; then
     exit 1
 fi
 echo "The server is running! Close this window to stop it."
+
+# Clear quarantine attribute and ensure executability to avoid "Killed: 9" on macOS
+xattr -d com.apple.quarantine "$EXECUTABLE" 2>/dev/null || true
+chmod +x "$EXECUTABLE"
+
 "$EXECUTABLE"
 echo "Server stopped. Press any key to exit..."
 read -n 1 -s
