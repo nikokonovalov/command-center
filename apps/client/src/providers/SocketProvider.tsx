@@ -1,8 +1,12 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { io, type Socket } from 'socket.io-client';
 
-// Connect directly to the backend to bypass Vite proxy flakiness
-const SOCKET_URL = 'http://localhost:3001';
+// If we're in the browser, connect to the exact same host/port that served us.
+// If window is undefined (e.g. during SSR), fallback to localhost:3001
+const SOCKET_URL = typeof window !== 'undefined'
+    ? window.location.origin
+    // Connect directly to the backend to bypass Vite proxy flakiness
+    : 'http://localhost:3001';
 
 // Create the socket globally so React Strict Mode (which double-mounts components)
 // doesn't create multiple connections.
