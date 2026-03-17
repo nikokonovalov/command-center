@@ -4,6 +4,7 @@ import { Bell } from 'lucide-react';
 const subNavItems = [
     { to: '/dashboard', label: 'AI Lifecycle Management' },
     { to: '/risk', label: 'AI Risk & Compliance' },
+    { to: '/use-cases', label: 'All AI Use Cases' },
 ];
 
 export default function DashboardLayout() {

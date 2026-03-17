@@ -1,4 +1,4 @@
-import type { DashboardConfig } from '@command-center/types';
+import type { DashboardConfig, TableConfig } from '@command-center/types';
 
 /**
  * Static fallback dashboard configs.
@@ -39,4 +39,34 @@ export const defaultRiskDashboardConfig: DashboardConfig = {
         { id: 'behavioral-drift', type: 'behavioral-drift', title: 'Behavioral Drift Monitoring', description: 'Real-time drift deviation across production agents.', layout: { colSpan: 4, rowSpan: 4 }, dataSource: { type: 'rest', endpoint: '/api/widgets/behavioral-drift/data', staleTime: 60000 } },
         { id: 'risk-score-breakdown', type: 'risk-score-breakdown', title: 'Agent Risk Score Breakdown', description: 'Component breakdown of risk scores for highest-risk agents.', layout: { colSpan: 6, rowSpan: 4 }, dataSource: { type: 'rest', endpoint: '/api/widgets/risk-score-breakdown/data', staleTime: 60000 } },
     ],
+};
+
+export const defaultUseCasesTableConfig: TableConfig = {
+    id: 'all-use-cases',
+    name: 'All AI Use Cases',
+    description: 'Comprehensive inventory of all AI initiatives across lifecycle stages, governance status, and risk visibility.',
+    dataEndpoint: '/api/inventory',
+    columns: [
+        { key: 'businessCaseId', label: 'Business Case ID', width: 'sm' },
+        { key: 'useCaseId', label: 'Use Case ID', width: 'sm' },
+        { key: 'useCaseName', label: 'Use Case Name', width: 'lg' },
+        { key: 'lob', label: 'LOB', width: 'sm' },
+        { key: 'lifecycleStage', label: 'Lifecycle Stage', width: 'md' },
+        { key: 'aiOnboardingStage', label: 'AI Onboarding Stage', width: 'md' },
+        { key: 'slaStatus', label: 'SLA Stage', width: 'sm', badge: { variant: { 'On Track': 'success', 'At SLA Limit': 'warning', 'SLA Breached': 'danger' } } },
+        { key: 'aiTechnology', label: 'AI Technology', width: 'sm' },
+        { key: 'status', label: 'Status', width: 'sm', badge: { variant: { 'Approved': 'success', 'Pending': 'warning', 'Rejected': 'danger' } } },
+        { key: 'severity', label: 'Severity', width: 'sm', badge: { variant: { 'Critical': 'danger', 'High': 'warning', 'Medium': 'warning', 'Low': 'success' } } },
+    ],
+    filters: [
+        { key: 'lifecycleStage', label: 'All Lifecycle Stage', options: ['POC', 'Pilot', 'Production', 'Archived'] },
+        { key: 'slaStatus', label: 'All SLA Stage', options: ['On Track', 'At SLA Limit', 'SLA Breached'] },
+        { key: 'aiOnboardingStage', label: 'All Onboarding Stage' },
+        { key: 'aiTechnology', label: 'All AI Technology', options: ['Agentic AI', 'GenAI'] },
+        { key: 'severity', label: 'All Severity', options: ['Critical', 'High', 'Medium', 'Low'] },
+        { key: 'status', label: 'All Status', options: ['Approved', 'Pending', 'Rejected'] },
+    ],
+    search: { placeholder: 'Search AI Use Case', searchableKeys: ['useCaseName', 'useCaseId', 'businessCaseId'] },
+    defaultPageSize: 10,
+    pageSizeOptions: [10, 25, 50, 100],
 };

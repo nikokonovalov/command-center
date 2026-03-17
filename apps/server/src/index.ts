@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import widgetRoutes from './routes/widgets.js';
+import inventoryRoutes from './routes/inventory.js';
 import { registerWidgetEvents } from './sockets/widget-events.js';
 
 const PORT = process.env.PORT ?? 3001;
@@ -16,6 +17,7 @@ app.use(express.json());
 
 // ── REST Routes ──
 app.use(widgetRoutes);
+app.use(inventoryRoutes);
 
 // ── Socket.io ──
 const io = new Server(httpServer, {
