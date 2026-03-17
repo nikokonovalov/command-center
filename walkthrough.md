@@ -7,8 +7,12 @@ command-center/                    ← TurboRepo root
 ├── apps/
 │   ├── client/                    ← React (Vite) frontend
 │   └── server/                    ← Express + Socket.io backend
+│       └── src/mocks/
+│           ├── inventory.ts       ← 110 AI Use Case items (centralized mock DB)
+│           └── generators.ts      ← 20 generator functions (derive from inventory)
 ├── packages/
 │   ├── types/                     ← Shared TypeScript types (@command-center/types)
+│   │   └── src/inventory.ts       ← AIUseCaseItem interface + union types
 │   └── tsconfig/                  ← Shared TS config
 ├── turbo.json
 └── pnpm-workspace.yaml
@@ -26,11 +30,13 @@ graph TB
         S_Index["index.ts — Server Entry"]
         S_Routes["routes/widgets.ts"]
         S_Sockets["sockets/widget-events.ts"]
-        S_Mocks["mocks/generators.ts"]
+        S_Inventory["mocks/inventory.ts — 110 AI Use Cases"]
+        S_Mocks["mocks/generators.ts — 20 Generators"]
         S_Index --> S_Routes
         S_Index --> S_Sockets
         S_Routes --> S_Mocks
         S_Sockets --> S_Mocks
+        S_Inventory --> S_Mocks
     end
 
     subgraph Client ["Frontend (React + Vite)"]
@@ -134,24 +140,77 @@ const { data, isConnected } = useWidgetSocket<LiveUsersData>(dataSource);
 
 ---
 
+## Inventory — The Centralized Data Layer
+
+All widget data is derived from a single **inventory** of 110 AI use case entities in [mocks/inventory.ts](file:///Users/nikokonovalov/Git/command-center/apps/server/src/mocks/inventory.ts). This array mimics a future database — each object is an `AIUseCaseItem` (typed in [packages/types/src/inventory.ts](file:///Users/nikokonovalov/Git/command-center/packages/types/src/inventory.ts)).
+
+```
+inventory (110 items)
+  │
+  ├── generators.ts reads inventory
+  │     ├── generateLifecycleKpiData()   → counts items per stage
+  │     ├── generateUseCasesByBUData()   → groups by LOB
+  │     ├── generateAttentionQueueData() → filters items with active alerts
+  │     └── ...18 more generators
+  │
+  └── routes/widgets.ts calls generators via widgetDataMap
+```
+
+**Distribution (approximate):**
+
+| Dimension | Breakdown |
+|-----------|-----------|
+| Lifecycle Stages | POC ~48, Pilot ~27, Production ~22, Archived ~18 |
+| AI Technology | Agentic AI ~41, GenAI ~69 |
+| Approval Status | Approved ~93, Pending ~9, Rejected ~8 |
+| LOBs | All 10 BUs (Compliance, COO, Finance, Service Ops, Internal Audit, HR, Client, Risk, Services, Technology, GLAC) |
+| Active | ~45 items (Production + some Pilot) |
+| With Agents | ~22 Production items with deployed agent names, drift scores, model metrics |
+| With Alerts | ~7 items with active attention-queue alerts |
+
+Each item carries fields for both the table view (third tab) and widget derivation — `businessCaseId`, `useCaseId`, `useCaseName`, `lob`, `lifecycleStage`, `slaStatus`, `severity`, `status`, `aiTechnology`, plus risk/model metrics for active items.
+
+> [!NOTE]
+> Time-series widgets (model-performance, model-quality-risk, ai-index-trend) keep historical data points as static arrays but derive the **current/latest value** from inventory averages. This is a pragmatic compromise until time-series data is added to the inventory.
+
+---
+
 ## Backend Data Sources
 
 ### REST — [widgets.ts](file:///Users/nikokonovalov/Git/command-center/apps/server/src/routes/widgets.ts)
 
-| Endpoint | Generator | Returns |
-|----------|-----------|---------|
-| `GET /api/dashboard/config` | hardcoded config | [DashboardConfig](file:///Users/nikokonovalov/Git/command-center/packages/types/src/dashboard.ts#3-9) |
-| `GET /api/widgets/revenue/data` | [generateRevenueData()](file:///Users/nikokonovalov/Git/command-center/apps/server/src/mocks/generators.ts#12-27) | [RevenueChartData](file:///Users/nikokonovalov/Git/command-center/packages/types/src/widgets.ts#12-22) |
-| `GET /api/widgets/stats/data?index=N` | [generateStatsData()](file:///Users/nikokonovalov/Git/command-center/apps/server/src/mocks/generators.ts#30-62) | [StatsCardData](file:///Users/nikokonovalov/Git/command-center/packages/types/src/widgets.ts#4-11) |
-| `GET /api/widgets/table/data` | [generateDataTableData()](file:///Users/nikokonovalov/Git/command-center/apps/server/src/mocks/generators.ts#97-120) | [DataTableData](file:///Users/nikokonovalov/Git/command-center/packages/types/src/widgets.ts#44-49) |
-| `GET /api/widgets/performance/data` | [generatePerformanceData()](file:///Users/nikokonovalov/Git/command-center/apps/server/src/mocks/generators.ts#123-142) | [PerformanceChartData](file:///Users/nikokonovalov/Git/command-center/packages/types/src/widgets.ts#50-58) |
+All widget endpoints follow the pattern `GET /api/widgets/:type/data` and are routed through a single `widgetDataMap` lookup. Each generator in [mocks/generators.ts](file:///Users/nikokonovalov/Git/command-center/apps/server/src/mocks/generators.ts) derives its data from the inventory.
+
+| Endpoint | Generator | Derivation |
+|----------|-----------|------------|
+| `GET /api/dashboard/config?tab=lifecycle\|risk` | hardcoded configs | Returns [DashboardConfig](file:///Users/nikokonovalov/Git/command-center/packages/types/src/dashboard.ts) per tab |
+| **AI Lifecycle widgets** | | |
+| `/api/widgets/lifecycle-kpi/data` | `generateLifecycleKpiData()` | Counts items per `lifecycleStage` |
+| `/api/widgets/approval-time/data` | `generateApprovalTimeData()` | Averages `approvalDays` across all items |
+| `/api/widgets/lifecycle-funnel/data` | `generateLifecycleFunnelData()` | Computes stage transition rates from counts |
+| `/api/widgets/stage-timeline/data` | `generateStageTimelineData()` | Averages `daysInCurrentStage` per stage vs SLA |
+| `/api/widgets/bottlenecks/data` | `generateBottlenecksData()` | Counts SLA breaches, high-risk pending, stuck >30 days |
+| `/api/widgets/onboarding-tracker/data` | `generateOnboardingTrackerData()` | Counts pending items by CISO/CBDC/MRM/NAC |
+| `/api/widgets/use-cases-by-bu/data` | `generateUseCasesByBUData()` | Groups and counts by `lob` |
+| `/api/widgets/approval-status/data` | `generateApprovalStatusData()` | Percentages by `status` |
+| `/api/widgets/tech-distribution/data` | `generateTechDistributionData()` | Percentages by `aiTechnology` |
+| **AI Risk widgets** | | |
+| `/api/widgets/risk-stats/data?index=0\|1` | `generateRiskStatsData()` | Counts active items / items with agents |
+| `/api/widgets/live-risk-events/data` | `generateLiveRiskEventsData()` | Sums alerts, violations, triggers from active items |
+| `/api/widgets/responsible-ai-index/data` | `generateResponsibleAIIndexData()` | Averages `responsibleAIScore` of active items |
+| `/api/widgets/model-performance/data` | `generateModelPerformanceData()` | Averages `accuracy`/`latency` from agent items |
+| `/api/widgets/model-quality-risk/data` | `generateModelQualityRiskData()` | Averages `hallucinationRate` from agent items |
+| `/api/widgets/ai-index-trend/data` | `generateAIIndexTrendData()` | Derives current score from avg `responsibleAIScore` |
+| `/api/widgets/attention-queue/data` | `generateAttentionQueueData()` | Filters items with non-null `alertType` |
+| `/api/widgets/behavioral-drift/data` | `generateBehavioralDriftData()` | Filters items with agents, returns drift data |
+| `/api/widgets/risk-score-breakdown/data` | `generateRiskScoreBreakdownData()` | Returns risk component breakdown per agent |
 
 ### Socket.io — [widget-events.ts](file:///Users/nikokonovalov/Git/command-center/apps/server/src/sockets/widget-events.ts)
 
-| Event/Room | Interval | Generator |
-|-----------|----------|-----------|
-| `live-users-update` | 2s | [generateLiveUsersData()](file:///Users/nikokonovalov/Git/command-center/apps/server/src/mocks/generators.ts#65-78) |
-| `activity-update` | 5s | [generateActivityFeedData()](file:///Users/nikokonovalov/Git/command-center/apps/server/src/mocks/generators.ts#85-94) |
+| Event/Room | Interval | Generator | Derivation |
+|-----------|----------|-----------|------------|
+| `production-growth-update` | 3s | `generateProductionGrowthData()` | Counts Production items, adds random sparkline jitter |
+| `monthly-cost-update` | 5s | `generateMonthlyCostData()` | Sums `monthlyCost` of active items, adds jitter |
 
 Clients subscribe by emitting `subscribe` with a `{ room }` payload. The server uses Socket.io rooms to only push data to interested clients.
 
@@ -259,3 +318,5 @@ Mirror the same entry in [dashboard.config.ts](file:///Users/nikokonovalov/Git/c
 | **Dual data hooks** | Widgets don't care *how* data arrives (REST vs Socket) — they just call the appropriate hook |
 | **Shared types package** | Single source of truth prevents API contract drift between client and server |
 | **Static fallback config** | Frontend works even when the backend is down during development |
+| **Centralized inventory** | All 20 generators derive from a single 110-item array — ensures cross-widget data consistency and prepares for the future "All AI Use Cases" table tab |
+| **Inventory → Generator derivation** | Generators compute (count, average, filter, group) from inventory at call time — no hardcoded values, so adding/removing items automatically updates all widgets |
