@@ -8,11 +8,14 @@ interface DashboardEngineProps {
 /**
  * The Dashboard Engine:
  * 1. Takes a DashboardConfig (from API or static config)
- * 2. Renders a responsive CSS Grid
+ * 2. Renders a responsive 10-column CSS Grid
  * 3. Iterates widgets and mounts them via WidgetWrapper → WidgetRegistry
  *
- * This is the "smart" layer that knows about layout.
- * Widgets themselves are "dumb" — they only know how to render their data.
+ * 10 columns gives maximum flexibility:
+ * - 5-card KPI rows → colSpan: 2 each
+ * - 2-column layouts → colSpan: 5 each
+ * - 3-column layouts → mix of colSpan: 3/4/3
+ * - Full width → colSpan: 10
  */
 export default function DashboardEngine({ config }: DashboardEngineProps) {
     if (!config.widgets || config.widgets.length === 0) {
@@ -24,7 +27,7 @@ export default function DashboardEngine({ config }: DashboardEngineProps) {
     }
 
     return (
-        <div className="grid grid-cols-1 gap-5 auto-rows-[180px] md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-10 gap-5 auto-rows-[70px] grid-flow-row-dense">
             {config.widgets.map((widget) => (
                 <div
                     key={widget.id}

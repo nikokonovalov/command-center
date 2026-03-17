@@ -2,6 +2,12 @@ import { Suspense } from 'react';
 import type { WidgetConfig } from '@command-center/types';
 import { WidgetRegistry } from './WidgetRegistry';
 import { WidgetErrorBoundary } from './WidgetErrorBoundary';
+import { ShieldCheck, CircleDollarSign } from 'lucide-react';
+
+const iconMap: Record<string, React.ElementType> = {
+    'shield-check': ShieldCheck,
+    'circle-dollar': CircleDollarSign,
+};
 
 interface WidgetWrapperProps {
     config: WidgetConfig;
@@ -41,18 +47,12 @@ export default function WidgetWrapper({ config }: WidgetWrapperProps) {
     const WidgetComponent = WidgetRegistry[config.type];
     const isLive = config.dataSource.type === 'socket';
 
-    return (
-        <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-border-subtle bg-bg-card transition-all duration-200 hover:border-border hover:shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border-subtle px-[18px] py-[14px]">
-                <h3 className="text-[0.8rem] font-semibold uppercase tracking-widest text-text-secondary">{config.title}</h3>
-                {isLive && (
-                    <div className="flex items-center gap-1.5 text-[0.7rem] font-medium uppercase tracking-wider text-accent-emerald">
-                        <span className="h-[7px] w-[7px] animate-pulse-dot rounded-full bg-accent-emerald" />
-                        Live
-                    </div>
-                )}
-            </div>
-            <div className="relative flex flex-1 flex-col overflow-hidden p-[18px]">
+    // Some widgets render multiple self-contained cards and shouldn't have the global wrapper chrome
+    const isBareWidget = ['lifecycle-kpi', 'risk-stats'].includes(config.type);
+
+    if (isBareWidget) {
+        return (
+            <div className="flex h-full flex-col">
                 {WidgetComponent ? (
                     <WidgetErrorBoundary>
                         <Suspense fallback={<WidgetSkeleton />}>
@@ -62,6 +62,52 @@ export default function WidgetWrapper({ config }: WidgetWrapperProps) {
                 ) : (
                     <UnknownWidget type={config.type} />
                 )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-all duration-200 hover:shadow-md">
+            <div className="flex h-full flex-col p-5">
+                {(config.title || isLive || config.description) && (
+                    <div className="shrink-0 mb-4">
+                        {(config.title || isLive) && (() => {
+                            const IconComponent = config.icon ? iconMap[config.icon] : null;
+
+                            return (
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-1.5 text-gray-700">
+                                        {IconComponent && <IconComponent size={16} className="text-gray-500" />}
+                                        <h3 className="text-[16px] font-normal text-gray-700">{config.title}</h3>
+                                    </div>
+                                    {isLive && (
+                                        <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-green-600">
+                                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-green-500" />
+                                            LIVE
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        })()}
+                        {config.description && (
+                            <p className="text-xs text-gray-500">
+                                {config.description}
+                            </p>
+                        )}
+                    </div>
+                )}
+
+                <div className="flex-1 flex flex-col min-h-0">
+                    {WidgetComponent ? (
+                        <WidgetErrorBoundary>
+                            <Suspense fallback={<WidgetSkeleton />}>
+                                <WidgetComponent dataSource={config.dataSource} />
+                            </Suspense>
+                        </WidgetErrorBoundary>
+                    ) : (
+                        <UnknownWidget type={config.type} />
+                    )}
+                </div>
             </div>
         </div>
     );

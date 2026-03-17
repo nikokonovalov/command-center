@@ -67,13 +67,17 @@
     color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scrollbar-color: #cbd0d7 transparent;
+    scrollbar-width: thin;
   }
 
   #root {
     min-height: 100vh;
+
   }
 
-  ::-webkit-scrollbar {
+
+  /* ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
@@ -89,7 +93,7 @@
 
   ::-webkit-scrollbar-thumb:hover {
     background: var(--color-text-muted);
-  }
+  } */
 }
 
 /* ─── Global Skeleton Utility ─────────────────────────────────────────────── */

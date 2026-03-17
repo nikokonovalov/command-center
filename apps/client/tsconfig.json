@@ -1,6 +1,7 @@
 {
     "extends": "@command-center/tsconfig/react.json",
     "compilerOptions": {
+        "allowImportingTsExtensions": true,
         "baseUrl": ".",
         "paths": {
             "@/*": [
