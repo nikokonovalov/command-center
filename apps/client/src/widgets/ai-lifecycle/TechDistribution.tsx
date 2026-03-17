@@ -1,9 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { useWidgetQuery } from '@/hooks/useWidgetQuery';
 import type { WidgetProps } from '@/engine/WidgetRegistry';
 import type { TechDistributionData } from '@command-center/types';
+import { buildUseCasesUrl } from '@/lib/navigation';
 
 export default function TechDistribution({ dataSource }: WidgetProps) {
     const { data, isLoading } = useWidgetQuery<TechDistributionData>(dataSource);
+    const navigate = useNavigate();
 
     if (isLoading || !data) {
         return (
@@ -22,11 +25,12 @@ export default function TechDistribution({ dataSource }: WidgetProps) {
                     {data.segments.map((seg) => (
                         <div
                             key={seg.label}
-                            className="flex items-center justify-center text-[11px] font-semibold text-white transition-all duration-500"
+                            className="flex items-center justify-center text-[11px] font-semibold text-white transition-all duration-500 cursor-pointer hover:opacity-80"
                             style={{
                                 width: `${seg.percentage}%`,
                                 backgroundColor: seg.color,
                             }}
+                            onClick={() => navigate(buildUseCasesUrl({ aiTechnology: seg.label }))}
                         >
                             {seg.percentage}%
                         </div>
@@ -36,7 +40,11 @@ export default function TechDistribution({ dataSource }: WidgetProps) {
                 {/* Legend */}
                 <div className="flex items-center gap-4">
                     {data.segments.map((seg) => (
-                        <div key={seg.label} className="flex items-center gap-2">
+                        <div
+                            key={seg.label}
+                            className="flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity"
+                            onClick={() => navigate(buildUseCasesUrl({ aiTechnology: seg.label }))}
+                        >
                             <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: seg.color }} />
                             <span className="text-xs text-gray-600">
                                 {seg.label}: {seg.count.toLocaleString()} ({seg.percentage}%)

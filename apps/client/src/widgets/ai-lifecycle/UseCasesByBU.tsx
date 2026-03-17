@@ -1,9 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { useWidgetQuery } from '@/hooks/useWidgetQuery';
 import type { WidgetProps } from '@/engine/WidgetRegistry';
 import type { UseCasesByBUData } from '@command-center/types';
+import { buildUseCasesUrl } from '@/lib/navigation';
 
 export default function UseCasesByBU({ dataSource }: WidgetProps) {
     const { data, isLoading } = useWidgetQuery<UseCasesByBUData>(dataSource);
+    const navigate = useNavigate();
 
     if (isLoading || !data) {
         return (
@@ -22,7 +25,11 @@ export default function UseCasesByBU({ dataSource }: WidgetProps) {
         <div className="flex h-full flex-col">
             <div className="flex-1 flex flex-col justify-center gap-[6px] overflow-y-auto">
                 {data.units.map((unit) => (
-                    <div key={unit.name} className="flex items-center gap-3">
+                    <div
+                        key={unit.name}
+                        className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => navigate(buildUseCasesUrl({ lob: unit.name }))}
+                    >
                         <span className="w-[100px] text-right text-xs text-gray-600 shrink-0 truncate">
                             {unit.name}
                         </span>

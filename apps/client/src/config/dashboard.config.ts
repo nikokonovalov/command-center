@@ -65,6 +65,7 @@ export const defaultUseCasesTableConfig: TableConfig = {
         { key: 'aiTechnology', label: 'All AI Technology', options: ['Agentic AI', 'GenAI'] },
         { key: 'severity', label: 'All Severity', options: ['Critical', 'High', 'Medium', 'Low'] },
         { key: 'status', label: 'All Status', options: ['Approved', 'Pending', 'Rejected'] },
+        { key: 'lob', label: 'All LOB' },
     ],
     search: { placeholder: 'Search AI Use Case', searchableKeys: ['useCaseName', 'useCaseId', 'businessCaseId'] },
     defaultPageSize: 10,

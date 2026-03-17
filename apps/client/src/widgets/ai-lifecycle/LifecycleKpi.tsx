@@ -1,6 +1,8 @@
+import { useNavigate } from 'react-router-dom';
 import { useWidgetQuery } from '@/hooks/useWidgetQuery';
 import type { WidgetProps } from '@/engine/WidgetRegistry';
 import type { LifecycleKpiData } from '@command-center/types';
+import { buildUseCasesUrl } from '@/lib/navigation';
 import { Cpu, FlaskConical, Rocket, CheckCircle2, Archive } from 'lucide-react';
 
 const icons: Record<string, React.ElementType> = {
@@ -11,8 +13,18 @@ const icons: Record<string, React.ElementType> = {
     archive: Archive,
 };
 
+/** Map card labels to lifecycleStage filter values. "Total AI Use Cases" navigates without filter. */
+const labelToFilter: Record<string, string | null> = {
+    'Total AI Use Cases': null,
+    'POC': 'POC',
+    'Pilot': 'Pilot',
+    'Production': 'Production',
+    'Archived': 'Archived',
+};
+
 export default function LifecycleKpi({ dataSource }: WidgetProps) {
     const { data, isLoading } = useWidgetQuery<LifecycleKpiData>(dataSource);
+    const navigate = useNavigate();
 
     if (isLoading || !data) {
         return (
@@ -29,11 +41,13 @@ export default function LifecycleKpi({ dataSource }: WidgetProps) {
             {data.cards.map((card) => {
                 const Icon = icons[card.icon] ?? Cpu;
                 const isDark = card.variant === 'dark';
+                const filterValue = labelToFilter[card.label];
 
                 return (
                     <div
                         key={card.label}
-                        className={`flex flex-col justify-between rounded-xl p-5 shadow-sm transition-shadow hover:shadow-md ${isDark
+                        onClick={() => navigate(buildUseCasesUrl(filterValue ? { lifecycleStage: filterValue } : {}))}
+                        className={`flex flex-col justify-between rounded-xl p-5 shadow-sm transition-all hover:shadow-md cursor-pointer hover:scale-[1.02] ${isDark
                                 ? 'bg-[#00112c] text-white'
                                 : 'border border-gray-200 bg-[#f8f9fa] text-gray-800'
                             }`}

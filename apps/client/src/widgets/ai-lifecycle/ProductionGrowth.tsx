@@ -1,9 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { useWidgetSocket } from '@/hooks/useWidgetSocket';
 import type { WidgetProps } from '@/engine/WidgetRegistry';
 import type { ProductionGrowthData } from '@command-center/types';
+import { buildUseCasesUrl } from '@/lib/navigation';
 
 export default function ProductionGrowth({ dataSource }: WidgetProps) {
     const { data, isConnected } = useWidgetSocket<ProductionGrowthData>(dataSource);
+    const navigate = useNavigate();
 
     if (!data) {
         return (
@@ -33,7 +36,10 @@ export default function ProductionGrowth({ dataSource }: WidgetProps) {
     const areaPath = `${linePath} L${w},${h} L0,${h} Z`;
 
     return (
-        <div className="flex h-full flex-col justify-between">
+        <div
+            className="flex h-full flex-col justify-between cursor-pointer"
+            onClick={() => navigate(buildUseCasesUrl({ lifecycleStage: 'Production' }))}
+        >
             <div>            </div>
             <div className="flex items-end justify-between">
                 <div className="flex items-center gap-3">

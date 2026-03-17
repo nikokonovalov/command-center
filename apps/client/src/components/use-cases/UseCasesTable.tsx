@@ -1,6 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, SlidersHorizontal, X, Eye, MoreHorizontal, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import type { TableConfig, AIUseCaseItem, BadgeVariant } from '@command-center/types';
+import UseCaseDetailPanel from './UseCaseDetailPanel';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -36,15 +38,43 @@ interface UseCasesTableProps {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function UseCasesTable({ config, data }: UseCasesTableProps) {
-    const [filters, setFilters] = useState<Record<string, string>>({});
-    const [searchQuery, setSearchQuery] = useState('');
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(config.defaultPageSize);
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [selectedItem, setSelectedItem] = useState<AIUseCaseItem | null>(null);
 
-    // Reset to page 1 when filters or search change
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [filters, searchQuery, pageSize]);
+    // ── Derive state from URL search params ──
+    const filterKeys = useMemo(() => config.filters.map(f => f.key), [config.filters]);
+
+    const filters = useMemo(() => {
+        const f: Record<string, string> = {};
+        for (const key of filterKeys) {
+            const val = searchParams.get(key);
+            if (val) f[key] = val;
+        }
+        return f;
+    }, [searchParams, filterKeys]);
+
+    const searchQuery = searchParams.get('search') ?? '';
+    const currentPage = Number(searchParams.get('page') ?? '1');
+    const pageSize = Number(searchParams.get('pageSize') ?? String(config.defaultPageSize));
+
+    // ── URL param helpers ──
+    const updateParams = useCallback((updates: Record<string, string | null>) => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            for (const [key, value] of Object.entries(updates)) {
+                if (value === null || value === '') {
+                    next.delete(key);
+                } else {
+                    next.set(key, value);
+                }
+            }
+            // Reset to page 1 when changing filters/search/pageSize (but not when changing page itself)
+            if (!('page' in updates)) {
+                next.delete('page');
+            }
+            return next;
+        }, { replace: true });
+    }, [setSearchParams]);
 
     // ── Derive filter options from data (for filters without predefined options) ──
     const filterOptions = useMemo(() => {
@@ -102,16 +132,11 @@ export default function UseCasesTable({ config, data }: UseCasesTableProps) {
     const hasActiveFilters = activeFilters.length > 0;
 
     const clearFilter = (key: string) => {
-        setFilters(prev => {
-            const next = { ...prev };
-            delete next[key];
-            return next;
-        });
+        updateParams({ [key]: null });
     };
 
     const clearAllFilters = () => {
-        setFilters({});
-        setSearchQuery('');
+        setSearchParams({}, { replace: true });
     };
 
     // ── Get display label for a filter value ──
@@ -233,7 +258,7 @@ export default function UseCasesTable({ config, data }: UseCasesTableProps) {
                     <select
                         key={f.key}
                         value={filters[f.key] ?? ''}
-                        onChange={e => setFilters(prev => ({ ...prev, [f.key]: e.target.value }))}
+                        onChange={e => updateParams({ [f.key]: e.target.value || null })}
                         className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     >
                         <option value="">{f.label}</option>
@@ -255,7 +280,7 @@ export default function UseCasesTable({ config, data }: UseCasesTableProps) {
                             type="text"
                             placeholder={config.search.placeholder}
                             value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
+                            onChange={e => updateParams({ search: e.target.value || null })}
                             className="rounded-md border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-700 placeholder-gray-400 hover:border-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 w-[220px]"
                         />
                     </div>
@@ -304,7 +329,10 @@ export default function UseCasesTable({ config, data }: UseCasesTableProps) {
                                     ))}
                                     <td className="px-4 py-3 whitespace-nowrap">
                                         <div className="flex items-center gap-2">
-                                            <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
+                                            <button
+                                                onClick={() => setSelectedItem(item)}
+                                                className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+                                            >
                                                 <Eye size={16} />
                                             </button>
                                             <button className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors">
@@ -327,7 +355,7 @@ export default function UseCasesTable({ config, data }: UseCasesTableProps) {
 
                 <div className="flex items-center gap-1">
                     <button
-                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        onClick={() => updateParams({ page: String(Math.max(1, currentPage - 1)) })}
                         disabled={currentPage <= 1}
                         className="rounded p-1.5 text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
                     >
@@ -340,7 +368,7 @@ export default function UseCasesTable({ config, data }: UseCasesTableProps) {
                         ) : (
                             <button
                                 key={page}
-                                onClick={() => setCurrentPage(page)}
+                                onClick={() => updateParams({ page: String(page) })}
                                 className={`min-w-[32px] rounded px-2 py-1 text-sm font-medium transition-colors ${
                                     currentPage === page
                                         ? 'bg-gray-900 text-white'
@@ -353,7 +381,7 @@ export default function UseCasesTable({ config, data }: UseCasesTableProps) {
                     )}
 
                     <button
-                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        onClick={() => updateParams({ page: String(Math.min(totalPages, currentPage + 1)) })}
                         disabled={currentPage >= totalPages}
                         className="rounded p-1.5 text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed"
                     >
@@ -365,7 +393,7 @@ export default function UseCasesTable({ config, data }: UseCasesTableProps) {
                     <span>Items per page</span>
                     <select
                         value={pageSize}
-                        onChange={e => setPageSize(Number(e.target.value))}
+                        onChange={e => updateParams({ pageSize: e.target.value === String(config.defaultPageSize) ? null : e.target.value })}
                         className="rounded-md border border-gray-300 bg-white px-2 py-1 text-sm"
                     >
                         {config.pageSizeOptions.map(size => (
@@ -374,6 +402,13 @@ export default function UseCasesTable({ config, data }: UseCasesTableProps) {
                     </select>
                 </div>
             </div>
+            {/* ── Detail Panel ── */}
+            {selectedItem && (
+                <UseCaseDetailPanel
+                    item={selectedItem}
+                    onClose={() => setSelectedItem(null)}
+                />
+            )}
         </div>
     );
 }
