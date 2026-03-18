@@ -42,24 +42,33 @@ graph TB
     subgraph Client ["Frontend (React + Vite)"]
         C_Main["main.tsx — App Entry"]
         C_App["App.tsx — Providers + Router"]
-        C_Layout["DashboardLayout — Sidebar + Top Bar + Outlet"]
+        C_Layout["DashboardLayout — Header + Sub-Nav + Outlet"]
         C_Page["DashboardPage — Fetches Config"]
         C_Engine["DashboardEngine — CSS Grid from Config"]
         C_Wrapper["WidgetWrapper — Card Chrome + Error Boundary + Suspense"]
         C_Registry["WidgetRegistry — Lazy Component Lookup"]
         C_Widget["Widget Component — Renders Data"]
+        C_UCPage["UseCasesPage — Fetches Config + Inventory"]
+        C_UCTable["UseCasesTable — Filter + Search + Paginate"]
+        C_UCPanel["UseCaseDetailPanel — Slide-out detail view"]
         C_Main --> C_App
         C_App --> C_Layout
         C_Layout --> C_Page
+        C_Layout --> C_UCPage
         C_Page --> C_Engine
         C_Engine --> C_Wrapper
         C_Wrapper --> C_Registry
         C_Registry --> C_Widget
+        C_UCPage --> C_UCTable
+        C_UCTable --> C_UCPanel
     end
 
     S_Routes -- "GET /api/dashboard/config" --> C_Page
+    S_Routes -- "GET /api/dashboard/config?tab=use-cases" --> C_UCPage
+    S_Routes -- "GET /api/inventory" --> C_UCPage
     S_Routes -- "GET /api/widgets/:type/data" --> C_Widget
     S_Sockets -- "Socket.io events" --> C_Widget
+    C_Widget -- "navigate(/use-cases?filter=value)" --> C_UCTable
 ```
 
 ---
@@ -76,11 +85,18 @@ graph TB
 |-------|------|---------|
 | **QueryProvider** | [QueryProvider.tsx](file:///Users/nikokonovalov/Git/command-center/apps/client/src/providers/QueryProvider.tsx) | TanStack Query client (30s stale time, 2 retries) |
 | **SocketProvider** | [SocketProvider.tsx](file:///Users/nikokonovalov/Git/command-center/apps/client/src/providers/SocketProvider.tsx) | Global Socket.io singleton → React context |
-| **BrowserRouter** | react-router-dom | Route: `/` redirects → `/dashboard` |
+| **BrowserRouter** | react-router-dom | Routes: `/` → `/dashboard`, `/risk`, `/use-cases` |
 
 ### 2. Layout Shell
 
-[DashboardLayout.tsx](file:///Users/nikokonovalov/Git/command-center/apps/client/src/layouts/DashboardLayout.tsx) renders the **fixed sidebar** (nav links) and **top bar** (title + notification bell), with an `<Outlet />` where page content is injected.
+[DashboardLayout.tsx](file:///Users/nikokonovalov/Git/command-center/apps/client/src/layouts/DashboardLayout.tsx) renders the **global header** (Citi branding + notifications) and **sub-navigation** (three tab links), with an `<Outlet />` where page content is injected.
+
+**Routes:**
+| Path | Page | Description |
+|------|------|-------------|
+| `/dashboard` | `DashboardPage` | AI Lifecycle Management tab |
+| `/risk` | `RiskDashboardPage` | AI Risk & Compliance tab |
+| `/use-cases` | `UseCasesPage` | All AI Use Cases table tab |
 
 ### 3. Dashboard Config Fetching
 
@@ -126,17 +142,118 @@ Each widget receives a `dataSource` prop and uses one of two hooks to get data:
 | `rest` | `useWidgetQuery<T>()` | [useWidgetQuery.ts](file:///Users/nikokonovalov/Git/command-center/apps/client/src/hooks/useWidgetQuery.ts) — wraps TanStack Query |
 | `socket` | `useWidgetSocket<T>()` | [useWidgetSocket.ts](file:///Users/nikokonovalov/Git/command-center/apps/client/src/hooks/useWidgetSocket.ts) — subscribes to a Socket.io room |
 
-**REST example** — [StatsCard.tsx](file:///Users/nikokonovalov/Git/command-center/apps/client/src/widgets/stats-card/StatsCard.tsx):
+---
+
+## All AI Use Cases Tab
+
+The third navigation tab (`/use-cases`) is a fully server-driven inventory table with filtering, searching, pagination, and a slide-out detail panel.
+
+### Data Flow
+
+1. [UseCasesPage.tsx](file:///Users/nikokonovalov/Git/command-center/apps/client/src/pages/UseCasesPage.tsx) fetches two things in parallel via TanStack Query:
+   - `GET /api/dashboard/config?tab=use-cases` → `TableConfig` (columns, filters, pagination settings)
+   - `GET /api/inventory` → `AIUseCaseItem[]` (all 110 use case records)
+2. Falls back to `defaultUseCasesTableConfig` from [dashboard.config.ts](file:///Users/nikokonovalov/Git/command-center/apps/client/src/config/dashboard.config.ts) if the API is unreachable
+3. Passes both to `<UseCasesTable />`
+
+### UseCasesTable — URL-Driven State
+
+[UseCasesTable.tsx](file:///Users/nikokonovalov/Git/command-center/apps/client/src/components/use-cases/UseCasesTable.tsx) manages **all state via URL search params** (`useSearchParams` from React Router). This enables:
+- Widgets on the dashboard tabs to navigate here with pre-applied filters (e.g. `/use-cases?lifecycleStage=POC`)
+- Filters persist across page refresh and can be shared via URL
+- "Clear All" removes all URL params at once
+
+**URL param keys used:**
+
+| Param | Description |
+|-------|-------------|
+| `lifecycleStage` | Filter by POC / Pilot / Production / Archived |
+| `slaStatus` | Filter by On Track / At SLA Limit / SLA Breached |
+| `aiOnboardingStage` | Filter by governance stage (partial match for comma-separated values) |
+| `aiTechnology` | Filter by Agentic AI / GenAI |
+| `severity` | Filter by Critical / High / Medium / Low |
+| `status` | Filter by Approved / Pending / Rejected |
+| `lob` | Filter by Line of Business (business unit name) |
+| `search` | Full-text search across useCaseName, useCaseId, businessCaseId |
+| `page` | Current page number |
+| `pageSize` | Rows per page |
+
+**Filter pipeline:** `data → filter(URL params) → filter(search query) → paginate → render`
+
+The filter logic uses `itemValue.includes(value)` (partial match) to support the `aiOnboardingStage` field which can contain comma-separated values like `"Pending CISO, Pending MRM"`.
+
+### TableConfig — Server-Driven Columns & Filters
+
+The `TableConfig` type (in `@command-center/types`) drives the entire table structure:
+
 ```typescript
-const { data, isLoading } = useWidgetQuery<StatsCardData>(dataSource);
-// Renders the stat value, change %, trend icon
+interface TableConfig {
+    name: string;
+    description?: string;
+    columns: ColumnConfig[];   // Which fields to show and how to render them
+    filters: FilterConfig[];   // Which dropdowns appear in the filter bar
+    search?: SearchConfig;     // Searchable field keys + placeholder text
+    defaultPageSize: number;
+    pageSizeOptions: number[];
+}
 ```
 
-**Socket example** — [LiveUsers.tsx](file:///Users/nikokonovalov/Git/command-center/apps/client/src/widgets/live-users/LiveUsers.tsx):
+Columns can have a `badge` property that maps field values to semantic variants (`success`, `warning`, `danger`, `info`, `neutral`) which the table renders as colored pills.
+
+### Clickable Widgets → Table Navigation
+
+All Lifecycle tab widgets are wired up to navigate to `/use-cases` with pre-applied filters when clicked. The shared helper is:
+
+**[`apps/client/src/lib/navigation.ts`](file:///Users/nikokonovalov/Git/command-center/apps/client/src/lib/navigation.ts)**
 ```typescript
-const { data, isConnected } = useWidgetSocket<LiveUsersData>(dataSource);
-// Renders live count, trend, top locations
+export function buildUseCasesUrl(filters: Record<string, string>): string {
+    const params = new URLSearchParams(filters);
+    const qs = params.toString();
+    return qs ? `/use-cases?${qs}` : '/use-cases';
+}
 ```
+
+Each widget imports `buildUseCasesUrl` and `useNavigate`, then attaches `onClick={() => navigate(buildUseCasesUrl({ filterKey: 'filterValue' }))}` to clickable elements.
+
+**Widget → Filter mapping:**
+
+| Widget | Clickable Element | Filter Applied |
+|--------|-------------------|----------------|
+| `lifecycle-kpi` | Each KPI card | `lifecycleStage` = POC / Pilot / Production / Archived (Total navigates with no filter) |
+| `lifecycle-funnel` | Each funnel segment | `lifecycleStage` = segment label |
+| `stage-timeline` | Each stage card | `lifecycleStage` = card label |
+| `approval-status` | Donut segments + legend | `status` = Approved / Rejected / Pending |
+| `tech-distribution` | Bar segments + legend | `aiTechnology` = Agentic AI / GenAI |
+| `approval-time` | SLA status badge | `slaStatus` = badge value (with "Within SLA" → "On Track" mapping) |
+| `production-growth` | Entire card | `lifecycleStage` = Production |
+| `onboarding-tracker` | Donut segments + legend | `aiOnboardingStage` = segment label (partial match) |
+| `bottlenecks` | "SLA Breaches" row only | `slaStatus` = SLA Breached |
+| `use-cases-by-bu` | Each bar row | `lob` = business unit name |
+
+Risk tab widgets are **not clickable** — they show agent-level derived metrics that don't map to inventory filters.
+
+### UseCaseDetailPanel — Slide-Out Detail View
+
+[UseCaseDetailPanel.tsx](file:///Users/nikokonovalov/Git/command-center/apps/client/src/components/use-cases/UseCaseDetailPanel.tsx) opens when the **eye icon** in the Actions column is clicked. It renders as a 700px slide-out panel from the right side of the screen.
+
+**Behavior:**
+- Rendered via `createPortal` at `document.body` to avoid table overflow clipping
+- Slides in/out with a CSS `translate-x` + `transition-transform duration-300` animation
+- Backdrop (`bg-black/30`) dims the page; clicking it closes the panel
+- Also closes on X button, "Close" button, or Escape key
+- Opening a different row's eye icon while the panel is open swaps the content immediately
+
+**Panel sections (all derived from `AIUseCaseItem` fields — no extra API call):**
+
+| Section | Data Source |
+|---------|-------------|
+| Header | `useCaseName`, `businessCaseId`, `useCaseId` |
+| Badge Row | `lifecycleStage`, `aiOnboardingStage`, `slaStatus` (colored badges) |
+| Assigned Reviewers | Fixed mock names (MRM Owner, CBDC Reviewer, CISO Reviewer) |
+| Lifecycle Timeline | Derived from `lifecycleStage` + `daysInCurrentStage` + `expectedSlaDays`; current stage shows progress bar with SLA breach indicator, completed stages show full bar, future stages show "Not Started" |
+| Governance Approval Tracker | Derived from `aiOnboardingStage` — parses the CISO/CBDC/MRM/NAC approval sequence to determine Completed / Pending / Not Started status with progress bars |
+| Timeline & Audit Log | Generated mock date entries based on approval timeline |
+| Footer | "View in AgentFlow" button + "Close" button |
 
 ---
 
@@ -153,7 +270,10 @@ inventory (110 items)
   │     ├── generateAttentionQueueData() → filters items with active alerts
   │     └── ...18 more generators
   │
-  └── routes/widgets.ts calls generators via widgetDataMap
+  ├── routes/widgets.ts calls generators via widgetDataMap
+  │
+  └── routes/inventory.ts exposes GET /api/inventory
+        → returns all 110 items for the UseCasesTable
 ```
 
 **Distribution (approximate):**
@@ -184,6 +304,8 @@ All widget endpoints follow the pattern `GET /api/widgets/:type/data` and are ro
 | Endpoint | Generator | Derivation |
 |----------|-----------|------------|
 | `GET /api/dashboard/config?tab=lifecycle\|risk` | hardcoded configs | Returns [DashboardConfig](file:///Users/nikokonovalov/Git/command-center/packages/types/src/dashboard.ts) per tab |
+| `GET /api/dashboard/config?tab=use-cases` | hardcoded config | Returns `TableConfig` (columns, filters, pagination) for the inventory table |
+| `GET /api/inventory` | direct inventory export | Returns all 110 `AIUseCaseItem` records |
 | **AI Lifecycle widgets** | | |
 | `/api/widgets/lifecycle-kpi/data` | `generateLifecycleKpiData()` | Counts items per `lifecycleStage` |
 | `/api/widgets/approval-time/data` | `generateApprovalTimeData()` | Averages `approvalDays` across all items |
@@ -226,16 +348,28 @@ widgets/
 ├── live-users/
 │   ├── LiveUsers.tsx
 │   └── index.ts
-├── revenue-chart/
-│   ├── ...
-│   └── index.ts
-├── ai-lifecycle/        ← Multi-component group (no index.ts)
-│   ├── DashboardHeader.tsx
-│   ├── KpiCardRow.tsx
-│   └── ...
-```
+├── ai-lifecycle/        ← Multi-component group (no index.ts needed)
+│   ├── LifecycleKpi.tsx      ← Clickable → /use-cases?lifecycleStage=*
+│   ├── LifecycleFunnel.tsx   ← Clickable → /use-cases?lifecycleStage=*
+│   ├── StageTimeline.tsx     ← Clickable → /use-cases?lifecycleStage=*
+│   ├── ApprovalStatus.tsx    ← Clickable → /use-cases?status=*
+│   ├── ApprovalTime.tsx      ← Clickable → /use-cases?slaStatus=*
+│   ├── TechDistribution.tsx  ← Clickable → /use-cases?aiTechnology=*
+│   ├── ProductionGrowth.tsx  ← Clickable → /use-cases?lifecycleStage=Production
+│   ├── OnboardingTracker.tsx ← Clickable → /use-cases?aiOnboardingStage=*
+│   ├── Bottlenecks.tsx       ← SLA row clickable → /use-cases?slaStatus=SLA Breached
+│   └── UseCasesByBU.tsx      ← Clickable → /use-cases?lob=*
+├── ai-risk/
+│   └── ...               ← Risk widgets (not clickable — agent-level metrics)
 
-The [index.ts](file:///Users/nikokonovalov/Git/command-center/apps/server/src/index.ts) barrel file is what makes `import('@/widgets/stats-card')` work in the WidgetRegistry's `lazy()` calls.
+components/
+└── use-cases/
+    ├── UseCasesTable.tsx         ← URL-param filter state, table rendering
+    └── UseCaseDetailPanel.tsx    ← Slide-out detail panel (portal, 700px)
+
+lib/
+└── navigation.ts                 ← buildUseCasesUrl() helper
+```
 
 ---
 
@@ -312,11 +446,15 @@ Mirror the same entry in [dashboard.config.ts](file:///Users/nikokonovalov/Git/c
 
 | Decision | Rationale |
 |----------|-----------|
-| **Server-driven config** | Dashboard layout can change without deploying the frontend |
+| **Server-driven config** | Dashboard layout and table columns/filters can change without deploying the frontend |
 | **Widget Registry + lazy()** | Code-splitting — widgets only load when needed |
 | **Error Boundary per widget** | One widget crashing doesn't take down the whole dashboard |
 | **Dual data hooks** | Widgets don't care *how* data arrives (REST vs Socket) — they just call the appropriate hook |
 | **Shared types package** | Single source of truth prevents API contract drift between client and server |
 | **Static fallback config** | Frontend works even when the backend is down during development |
-| **Centralized inventory** | All 20 generators derive from a single 110-item array — ensures cross-widget data consistency and prepares for the future "All AI Use Cases" table tab |
+| **Centralized inventory** | All 20 generators derive from a single 110-item array — ensures cross-widget data consistency and feeds the "All AI Use Cases" table directly |
 | **Inventory → Generator derivation** | Generators compute (count, average, filter, group) from inventory at call time — no hardcoded values, so adding/removing items automatically updates all widgets |
+| **URL-driven table state** | `useSearchParams` for all filter/search/pagination state enables deep-linking, browser-back navigation, and cross-widget navigation into pre-filtered views |
+| **Widget → Table navigation** | Clicking a dashboard card navigates to `/use-cases?filter=value` — the table reads the URL and applies the filter automatically, creating a seamless drill-down UX |
+| **Portal-based detail panel** | `createPortal` renders the slide-out panel at `document.body` to avoid clipping by table `overflow-hidden` containers |
+| **Client-side detail derivation** | The detail panel derives all its sections (governance tracker, lifecycle timeline) from the existing `AIUseCaseItem` fields — no extra API endpoint needed for the POC |
