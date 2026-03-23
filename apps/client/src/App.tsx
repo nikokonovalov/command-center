@@ -4,6 +4,7 @@ import { SocketProvider } from '@/providers/SocketProvider';
 import DashboardLayout from '@/layouts/DashboardLayout';
 import DashboardPage from '@/pages/DashboardPage';
 import RiskDashboardPage from '@/pages/RiskDashboardPage';
+import UseCasesPage from '@/pages/UseCasesPage';
 
 export default function App() {
     return (
@@ -15,6 +16,7 @@ export default function App() {
                             <Route path="/" element={<Navigate to="/dashboard" replace />} />
                             <Route path="/dashboard" element={<DashboardPage />} />
                             <Route path="/risk" element={<RiskDashboardPage />} />
+                            <Route path="/use-cases" element={<UseCasesPage />} />
                         </Route>
                     </Routes>
                 </BrowserRouter>

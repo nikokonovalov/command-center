@@ -1,10 +1,20 @@
+import { useNavigate } from 'react-router-dom';
 import { useWidgetQuery } from '@/hooks/useWidgetQuery';
 import type { WidgetProps } from '@/engine/WidgetRegistry';
 import type { ApprovalTimeData } from '@command-center/types';
+import { buildUseCasesUrl } from '@/lib/navigation';
 import { ArrowDown, ArrowUp } from 'lucide-react';
+
+/** Map widget's SLA status labels to inventory slaStatus filter values */
+const slaToFilter: Record<string, string> = {
+    'Within SLA': 'On Track',
+    'At SLA Limit': 'At SLA Limit',
+    'SLA Breached': 'SLA Breached',
+};
 
 export default function ApprovalTime({ dataSource }: WidgetProps) {
     const { data, isLoading } = useWidgetQuery<ApprovalTimeData>(dataSource);
+    const navigate = useNavigate();
 
     if (isLoading || !data) {
         return (
@@ -24,6 +34,8 @@ export default function ApprovalTime({ dataSource }: WidgetProps) {
     const progress = Math.min(data.avgDays / 30, 1); // assume 30-day max
     const offset = circumference * (1 - progress);
 
+    const filterValue = slaToFilter[data.slaStatus] ?? data.slaStatus;
+
     return (
         <div className="relative flex h-full flex-col justify-end">
             <div>
@@ -33,10 +45,13 @@ export default function ApprovalTime({ dataSource }: WidgetProps) {
                         {data.deltaDays} days {data.deltaLabel}
                     </span>
                 </div>
-                <div className={`inline-block rounded-full px-3 py-1 text-xs font-medium ${data.slaStatus === 'Within SLA' ? 'bg-green-100 text-green-700' :
-                        data.slaStatus === 'At SLA Limit' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-red-100 text-red-600'
-                    }`}>
+                <div
+                    className={`inline-block rounded-full px-3 py-1 text-xs font-medium cursor-pointer transition-all hover:scale-105 ${data.slaStatus === 'Within SLA' ? 'bg-green-100 text-green-700' :
+                            data.slaStatus === 'At SLA Limit' ? 'bg-yellow-100 text-yellow-700' :
+                                'bg-red-100 text-red-600'
+                        }`}
+                    onClick={() => navigate(buildUseCasesUrl({ slaStatus: filterValue }))}
+                >
                     Status: {data.slaStatus}
                 </div>
             </div>

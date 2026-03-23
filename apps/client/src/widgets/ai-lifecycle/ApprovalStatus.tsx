@@ -1,9 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { useWidgetQuery } from '@/hooks/useWidgetQuery';
 import type { WidgetProps } from '@/engine/WidgetRegistry';
 import type { ApprovalStatusData } from '@command-center/types';
+import { buildUseCasesUrl } from '@/lib/navigation';
 
 export default function ApprovalStatus({ dataSource }: WidgetProps) {
     const { data, isLoading } = useWidgetQuery<ApprovalStatusData>(dataSource);
+    const navigate = useNavigate();
 
     if (isLoading || !data) {
         return (
@@ -53,7 +56,11 @@ export default function ApprovalStatus({ dataSource }: WidgetProps) {
             <div className="flex flex-1 items-center gap-4">
                 <div className="flex flex-col gap-1.5 min-w-[100px]">
                     {segments.map(s => (
-                        <div key={s.label} className="flex items-center gap-2">
+                        <div
+                            key={s.label}
+                            className="flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity"
+                            onClick={() => navigate(buildUseCasesUrl({ status: s.label }))}
+                        >
                             <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
                             <span className="text-[11px] text-gray-600">{s.label}: {s.value}%</span>
                         </div>
@@ -62,7 +69,13 @@ export default function ApprovalStatus({ dataSource }: WidgetProps) {
                 <div className="relative flex items-center justify-center">
                     <svg width={100} height={100} viewBox="0 0 100 100">
                         {arcs.map((arc, i) => (
-                            <path key={i} d={arc.d} fill={arc.color} />
+                            <path
+                                key={i}
+                                d={arc.d}
+                                fill={arc.color}
+                                className="cursor-pointer transition-opacity hover:opacity-80"
+                                onClick={() => navigate(buildUseCasesUrl({ status: arc.label }))}
+                            />
                         ))}
                     </svg>
                     <div className="absolute text-center">

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import type { DashboardConfig, ApiResponse } from '@command-center/types';
+import type { DashboardConfig, TableConfig, ApiResponse } from '@command-center/types';
 import {
     generateLifecycleKpiData,
     generateProductionGrowthData,
@@ -210,8 +210,82 @@ const riskDashboardConfig: DashboardConfig = {
     ],
 };
 
+// ─── Table Config ────────────────────────────────────────────────────────────
+
+const useCasesTableConfig: TableConfig = {
+    id: 'all-use-cases',
+    name: 'All AI Use Cases',
+    description: 'Comprehensive inventory of all AI initiatives across lifecycle stages, governance status, and risk visibility.',
+    dataEndpoint: '/api/inventory',
+    columns: [
+        { key: 'businessCaseId', label: 'Business Case ID', width: 'sm' },
+        { key: 'useCaseId', label: 'Use Case ID', width: 'sm' },
+        { key: 'useCaseName', label: 'Use Case Name', width: 'lg' },
+        { key: 'lob', label: 'LOB', width: 'sm' },
+        { key: 'lifecycleStage', label: 'Lifecycle Stage', width: 'md' },
+        { key: 'aiOnboardingStage', label: 'AI Onboarding Stage', width: 'md' },
+        {
+            key: 'slaStatus', label: 'SLA Stage', width: 'sm',
+            badge: {
+                variant: {
+                    'On Track': 'success',
+                    'At SLA Limit': 'warning',
+                    'SLA Breached': 'danger',
+                },
+            },
+        },
+        { key: 'aiTechnology', label: 'AI Technology', width: 'sm' },
+        {
+            key: 'status', label: 'Status', width: 'sm',
+            badge: {
+                variant: {
+                    'Approved': 'success',
+                    'Pending': 'warning',
+                    'Rejected': 'danger',
+                },
+            },
+        },
+        {
+            key: 'severity', label: 'Severity', width: 'sm',
+            badge: {
+                variant: {
+                    'Critical': 'danger',
+                    'High': 'warning',
+                    'Medium': 'warning',
+                    'Low': 'success',
+                },
+            },
+        },
+    ],
+    filters: [
+        { key: 'lifecycleStage', label: 'All Lifecycle Stage', options: ['POC', 'Pilot', 'Production', 'Archived'] },
+        { key: 'slaStatus', label: 'All SLA Stage', options: ['On Track', 'At SLA Limit', 'SLA Breached'] },
+        { key: 'aiOnboardingStage', label: 'All Onboarding Stage' },
+        { key: 'aiTechnology', label: 'All AI Technology', options: ['Agentic AI', 'GenAI'] },
+        { key: 'severity', label: 'All Severity', options: ['Critical', 'High', 'Medium', 'Low'] },
+        { key: 'status', label: 'All Status', options: ['Approved', 'Pending', 'Rejected'] },
+        { key: 'lob', label: 'All LOB' },
+    ],
+    search: {
+        placeholder: 'Search AI Use Case',
+        searchableKeys: ['useCaseName', 'useCaseId', 'businessCaseId'],
+    },
+    defaultPageSize: 10,
+    pageSizeOptions: [10, 25, 50, 100],
+};
+
 router.get('/api/dashboard/config', (req, res) => {
     const tab = req.query.tab as string || 'lifecycle';
+
+    if (tab === 'use-cases') {
+        const response: ApiResponse<TableConfig> = {
+            data: useCasesTableConfig,
+            meta: { timestamp: new Date().toISOString() },
+        };
+        res.json(response);
+        return;
+    }
+
     const config = tab === 'risk' ? riskDashboardConfig : lifecycleDashboardConfig;
     const response: ApiResponse<DashboardConfig> = {
         data: config,

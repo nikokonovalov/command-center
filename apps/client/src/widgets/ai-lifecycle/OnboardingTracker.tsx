@@ -1,9 +1,12 @@
+import { useNavigate } from 'react-router-dom';
 import { useWidgetQuery } from '@/hooks/useWidgetQuery';
 import type { WidgetProps } from '@/engine/WidgetRegistry';
 import type { OnboardingTrackerData } from '@command-center/types';
+import { buildUseCasesUrl } from '@/lib/navigation';
 
 export default function OnboardingTracker({ dataSource }: WidgetProps) {
     const { data, isLoading } = useWidgetQuery<OnboardingTrackerData>(dataSource);
+    const navigate = useNavigate();
 
     if (isLoading || !data) {
         return (
@@ -51,7 +54,7 @@ export default function OnboardingTracker({ dataSource }: WidgetProps) {
             'Z',
         ].join(' ');
 
-        return { d, color: cat.color };
+        return { d, color: cat.color, label: cat.label };
     });
 
     return (
@@ -60,7 +63,11 @@ export default function OnboardingTracker({ dataSource }: WidgetProps) {
                 {/* Legend */}
                 <div className="flex flex-col gap-2 min-w-[140px]">
                     {data.categories.map((cat) => (
-                        <div key={cat.label} className="flex items-center gap-2">
+                        <div
+                            key={cat.label}
+                            className="flex items-center gap-2 cursor-pointer hover:opacity-70 transition-opacity"
+                            onClick={() => navigate(buildUseCasesUrl({ aiOnboardingStage: cat.label }))}
+                        >
                             <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
                             <span className="text-xs text-gray-600">{cat.label}: {cat.count}</span>
                         </div>
@@ -71,7 +78,13 @@ export default function OnboardingTracker({ dataSource }: WidgetProps) {
                 <div className="relative flex items-center justify-center">
                     <svg width={160} height={160} viewBox={`0 0 ${cx * 2} ${cy * 2}`}>
                         {arcs.map((arc, i) => (
-                            <path key={i} d={arc.d} fill={arc.color} />
+                            <path
+                                key={i}
+                                d={arc.d}
+                                fill={arc.color}
+                                className="cursor-pointer transition-opacity hover:opacity-80"
+                                onClick={() => navigate(buildUseCasesUrl({ aiOnboardingStage: arc.label }))}
+                            />
                         ))}
                     </svg>
                     <div className="absolute text-center">

@@ -1,6 +1,8 @@
+import { useNavigate } from 'react-router-dom';
 import { useWidgetQuery } from '@/hooks/useWidgetQuery';
 import type { WidgetProps } from '@/engine/WidgetRegistry';
 import type { StageTimelineData } from '@command-center/types';
+import { buildUseCasesUrl } from '@/lib/navigation';
 import { FlaskConical, Rocket, CheckCircle2, Info } from 'lucide-react';
 
 const icons: Record<string, React.ElementType> = {
@@ -17,6 +19,7 @@ const statusStyles: Record<string, { bg: string; text: string; border: string }>
 
 export default function StageTimeline({ dataSource }: WidgetProps) {
     const { data, isLoading } = useWidgetQuery<StageTimelineData>(dataSource);
+    const navigate = useNavigate();
 
     if (isLoading || !data) {
         return (
@@ -38,7 +41,11 @@ export default function StageTimeline({ dataSource }: WidgetProps) {
                         const style = statusStyles[stage.status] ?? statusStyles['On Track'];
 
                         return (
-                            <div key={stage.label} className={`rounded-xl border ${style.border} ${style.bg} p-4 flex flex-col gap-3`}>
+                            <div
+                                key={stage.label}
+                                onClick={() => navigate(buildUseCasesUrl({ lifecycleStage: stage.label }))}
+                                className={`rounded-xl border ${style.border} ${style.bg} p-4 flex flex-col gap-3 cursor-pointer transition-all hover:scale-[1.02] hover:shadow-sm`}
+                            >
                                 <div className="flex items-center gap-2">
                                     <Icon size={16} className={style.text} />
                                     <span className="text-sm font-semibold text-gray-800">{stage.label}</span>
